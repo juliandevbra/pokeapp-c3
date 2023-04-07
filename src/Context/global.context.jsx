@@ -1,3 +1,4 @@
+import axios from 'axios'
 import {createContext, useContext, useState, useEffect, useReducer} from 'react'
 
 export const PokeStates = createContext()
@@ -40,27 +41,49 @@ const favReducer = (state, action) => {
     }
 }
 
+const initialApiState = {pokeList: [], pokeDetail: {}}
+
+const apiReducer = (state, action) => {
+    switch(action.type){
+        case 'GET_POKES':
+            return {pokeList: action.payload, pokeDetail: state.pokeDetail}
+        case 'GET_POKE':
+            return {pokeDetail: action.payload, pokeList: state.pokeList}
+    }
+}
+
 const Context = ({children}) => {
-    const [pokeList, setPokeList] = useState([])
-    const url = 'https://pokeapi.co/api/v2/pokemon?limit=10&offset=0'
     const [themeState, themeDispatch] = useReducer(themeReducer, initialThemeState)
     const [favState, favDispatch] = useReducer(favReducer, initialFavState)
+    const [apiState, apiDispatch] = useReducer(apiReducer, initialApiState)
 
     useEffect(() => {
         localStorage.setItem('favs', JSON.stringify(favState))
     }, [favState])
 
     useEffect(() => {
+        let url = 'https://pokeapi.co/api/v2/pokemon?limit=10&offset=0'
         const fetchPokes = async () => {
             let res = await fetch(url)
             let data = await res.json()
-            setPokeList(data.results)
+            apiDispatch({type: 'GET_POKES', payload: data.results})
         }
         fetchPokes()
     }, [])
 
+    const getPoke = (name) => {
+        let url = 'https://pokeapi.co/api/v2/pokemon/' + name
+        axios(url)
+        .then(res => apiDispatch({type: 'GET_POKE', payload: res.data}))
+    }
+
     return( 
-        <PokeStates.Provider value={{pokeList, setPokeList, themeState, themeDispatch, favState, favDispatch}}>
+        <PokeStates.Provider value={{
+            apiState, apiDispatch, 
+            themeState, themeDispatch, 
+            favState, favDispatch,
+            getPoke
+            }}>
             {children}
         </PokeStates.Provider>
     )
