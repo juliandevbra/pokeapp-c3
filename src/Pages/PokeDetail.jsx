@@ -28,7 +28,7 @@ const PokeDetail = () => {
 
   return (
     <div>
-      <ComponenteInexistente></ComponenteInexistente>
+      {/* <ComponenteInexistente></ComponenteInexistente> */}
         <h2>{apiState.pokeDetail.name}</h2>
         <img src={apiState.pokeDetail.sprites?.front_default} alt="" />
         <br />
