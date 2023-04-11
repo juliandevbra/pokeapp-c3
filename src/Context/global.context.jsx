@@ -1,5 +1,6 @@
 import axios from 'axios'
 import {createContext, useContext, useState, useEffect, useReducer} from 'react'
+import Swal from 'sweetalert2'
 
 export const PokeStates = createContext()
 
@@ -30,6 +31,7 @@ const themeReducer = (state, action) => {
             throw new Error
     }
 }
+
 const initialFavState = JSON.parse(localStorage.getItem('favs')) || []
 
 const favReducer = (state, action) => {
@@ -64,9 +66,19 @@ const Context = ({children}) => {
     useEffect(() => {
         let url = 'https://pokeapi.co/api/v2/pokemon?limit=10&offset=0'
         const fetchPokes = async () => {
-            let res = await fetch(url)
-            let data = await res.json()
-            apiDispatch({type: 'GET_POKES', payload: data.results})
+            try {
+                let res = await fetch(url)
+                let data = await res.json()
+                apiDispatch({type: 'GET_POKES', payload: data.results})
+            }
+            catch(err) {
+                Swal.fire({
+                    title: 'Ay no!',
+                    text: 'Ocurrió el siguiente error: ' + err,
+                    icon: 'error',
+                    timer: 2000
+                })
+            }
         }
         fetchPokes()
     }, [])
@@ -75,6 +87,7 @@ const Context = ({children}) => {
         let url = 'https://pokeapi.co/api/v2/pokemon/' + name
         axios(url)
         .then(res => apiDispatch({type: 'GET_POKE', payload: res.data}))
+        .catch(err => Swal.fire('Oops...', 'Ha ocurrido el siguiente error: ' + err, 'error'))
     }
 
     return( 
